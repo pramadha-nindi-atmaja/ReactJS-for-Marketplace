@@ -1,37 +1,34 @@
 /**
- * Web Vitals reporting function
- * Reports Core Web Vitals metrics to the provided callback function
- * 
- * @param {Function} onPerfEntry - Callback function to handle performance metrics
+ * Reports Web Vitals metrics to the provided callback.
+ *
+ * @param {Function} onPerfEntry - Callback to handle performance metrics.
  */
 const reportWebVitals = async (onPerfEntry) => {
-  if (onPerfEntry && typeof onPerfEntry === 'function') {
-    try {
-      // Use dynamic import with await for better error handling
-      const { getCLS, getFID, getFCP, getLCP, getTTFB } = await import('web-vitals');
+  if (typeof onPerfEntry !== "function") return;
 
-      // Report each metric with success/failure logs
-      const reportMetric = (metricFunc, name) => {
-        try {
-          metricFunc((metric) => {
-            console.log(`Successfully reported ${name}:`, metric);
-            onPerfEntry(metric);
-          });
-        } catch (metricError) {
-          console.error(`Failed to report ${name}:`, metricError);
-        }
-      };
+  try {
+    const webVitals = await import("web-vitals");
 
-      reportMetric(getCLS, "CLS");
-      reportMetric(getFID, "FID");
-      reportMetric(getFCP, "FCP");
-      reportMetric(getLCP, "LCP");
-      reportMetric(getTTFB, "TTFB");
+    const metrics = {
+      CLS: webVitals.getCLS,
+      FID: webVitals.getFID,
+      FCP: webVitals.getFCP,
+      LCP: webVitals.getLCP,
+      TTFB: webVitals.getTTFB,
+    };
 
-      console.log('Web Vitals metrics reported successfully');
-    } catch (error) {
-      console.error('Failed to load web-vitals:', error);
-    }
+    Object.entries(metrics).forEach(([name, metricFn]) => {
+      try {
+        metricFn((metric) => {
+          console.log(`Reported ${name}:`, metric);
+          onPerfEntry(metric);
+        });
+      } catch (err) {
+        console.error(`Error reporting ${name}:`, err);
+      }
+    });
+  } catch (error) {
+    console.error("Failed to load web-vitals module:", error);
   }
 };
 
